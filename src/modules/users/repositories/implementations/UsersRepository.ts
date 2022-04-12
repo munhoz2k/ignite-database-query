@@ -1,4 +1,4 @@
-import { getRepository, Repository } from 'typeorm';
+import { getRepository, JoinTable, Repository } from 'typeorm';
 
 import { IFindUserWithGamesDTO, IFindUserByFullNameDTO } from '../../dtos';
 import { User } from '../../entities/User';
@@ -13,18 +13,22 @@ export class UsersRepository implements IUsersRepository {
 
   async findUserWithGamesById({
     user_id,
-  }: IFindUserWithGamesDTO): Promise<User> {
-    // Complete usando ORM
+  }: IFindUserWithGamesDTO): Promise<User | undefined> {
+    const user = await this.repository.findOne(user_id, { relations: ["games"]})
+
+    return user
   }
 
   async findAllUsersOrderedByFirstName(): Promise<User[]> {
-    return this.repository.query(); // Complete usando raw query
+    const asdai = await this.repository.query('SELECT * FROM users ORDER BY first_name'); // Complete usando raw query
+    return asdai
   }
 
   async findUserByFullName({
     first_name,
     last_name,
   }: IFindUserByFullNameDTO): Promise<User[] | undefined> {
-    return this.repository.query(); // Complete usando raw query
+    const full_name = first_name + ' ' + last_name
+    return await this.repository.query(`SELECT email, first_name, last_name FROM users WHERE LOWER(CONCAT_WS(' ', first_name, last_name)) = LOWER($1)`, [`${full_name}`])
   }
 }
